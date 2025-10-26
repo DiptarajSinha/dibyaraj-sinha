@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dibyaraj Sinha - Author</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- React Libraries -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #d4af37;
+            margin: 0;
+            padding: 0;
+        }
+
+        .font-playfair {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+            padding-bottom: 4px;
+        }
+
+        .nav-link:hover {
+            color: #f4d03f;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+            border-bottom: 2px solid #f4d03f;
+        }
+
+        .nav-link.active {
+            border-bottom: 2px solid #d4af37;
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-hover:hover {
+            border-color: #d4af37;
+            color: #f4d03f !important;
+            transform: translateY(-2px);
+        }
+
+        .book-card {
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        .book-card:hover {
+            transform: rotateY(5deg) scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #111;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            animation: slideDown 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #000;
+            border-top: 1px solid #222;
+            z-index: 50;
+        }
+
+        .content-wrapper {
+            padding-top: 80px;
+            padding-bottom: 120px;
+            min-height: 100vh;
+        }
+
+        .name-notch {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background-color: #000;
+            padding: 0.75rem 3rem;
+            border-radius: 30px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        /* PDF Reader Styles */
+        .pdf-reader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pdf-container {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .pdf-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .pdf-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9;
+            pointer-events: none;
+        }
+
+        .close-reader-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 100;
+            background: rgba(212, 175, 55, 0.9);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .close-reader-btn:hover {
+            background: #f4d03f;
+            transform: scale(1.05);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .name-notch {
+                padding: 0.5rem 2rem;
+                font-size: 1rem;
+            }
+
+            footer {
+                padding: 1rem 0.5rem;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .pdf-watermark {
+                font-size: 8vw;
+            }
+
+            .close-reader-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Copy Protection - One-time alert per session
+        const setupCopyProtection = () => {
+            let alerted = false;
+
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                if (!alerted) {
+                    alert('© 2025 Dibyaraj Sinha - Content is protected');
+                    alerted = true;
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'a' || e.key === 's' || e.key === 'p')) {
+                    e.preventDefault();
+                    if (!alerted) {
+                        alert('© 2025 Dibyaraj Sinha - Content is protected');
+                        alerted = true;
+                    }
+                }
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                    e.preventDefault();
+                }
+            });
+        };
+
+        // Router Components
+        const Router = ({ children }) => {
+            const [currentPath, setCurrentPath] = useState('/');
+
+            useEffect(() => {
+                setCurrentPath('/');
+            }, []);
+
+            useEffect(() => {
+                const onLocationChange = () => {
+                    setCurrentPath(window.location.pathname);
+                };
+                window.addEventListener('popstate', onLocationChange);
+                return () => window.removeEventListener('popstate', onLocationChange);
+            }, []);
+
+            const childrenWithProps = React.Children.map(children, child => {
+                return React.cloneElement(child, { currentPath, setCurrentPath });
+            });
+
+            return <>{childrenWithProps}</>;
+        };
+
+        const Route = ({ path, component: Component, currentPath, setCurrentPath }) => {
+            return currentPath === path ? <Component setCurrentPath={setCurrentPath} /> : null;
+        };
+
+        const Link = ({ to, children, className, setCurrentPath }) => {
+            const handleClick = (e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', to);
+                setCurrentPath(to);
+                window.scrollTo(0, 0);
+            };
+
+            return (
+                <a href={to} onClick={handleClick} className={className}>
+                    {children}
+                </a>
+            );
+        };
+
+        // Name Notch Component
+        const NameNotch = ({ setCurrentPath }) => {
+            return (
+                <div className="name-notch">
+                    <Link to="/" className="text-xl font-playfair whitespace-nowrap" setCurrentPath={setCurrentPath}>
+                        Dibyaraj Sinha
+                    </Link>
+                </div>
+            );
+        };
+
+        // Footer Component
+        const Footer = ({ currentPath, setCurrentPath }) => {
+            return (
+                <footer className="py-6">
+                    <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm gap-4" style={{ color: '#9a8028' }}>
+                        <div className="text-center md:text-left">© 2025 Dibyaraj Sinha. All rights reserved.</div>
+                        <div className="flex flex-wrap gap-6 justify-center">
+                            <Link
+                                to="/"
+                                className={`nav-link ${currentPath === '/' ? 'active' : ''}`}
+                                setCurrentPath={setCurrentPath}
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                to="/books"
+                                className={`nav-link ${currentPath === '/books' ? 'active' : ''}`}
+                                setCurrentPath={setCurrentPath}
+                            >
+                                Books
+                            </Link>
+                            <Link
+                                to="/about"
+                                className={`nav-link ${currentPath === '/about' ? 'active' : ''}`}
+                                setCurrentPath={setCurrentPath}
+                            >
+                                About
+                            </Link>
+                            <Link
+                                to="/rights"
+                                className={`nav-link ${currentPath === '/rights' ? 'active' : ''}`}
+                                setCurrentPath={setCurrentPath}
+                            >
+                                Rights & Permissions
+                            </Link>
+                        </div>
+                    </div>
+                </footer>
+            );
+        };
+
+        // Home Page
+        const Home = ({ setCurrentPath }) => {
+            const [showContactModal, setShowContactModal] = useState(false);
+
+            return (
+                <>
+                    <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
+                    <div className="min-h-screen flex items-center justify-center content-wrapper fade-in">
+                        <div className="text-center px-4">
+                            <h1 className="text-5xl md:text-7xl lg:text-8xl font-playfair mb-4">Dibyaraj Sinha</h1>
+                            <p className="text-lg md:text-xl mb-12 italic" style={{ color: '#b8960e' }}>
+                                Author of Cinco, The Aura, and Beyond the Mist
+                            </p>
+                            <div className="flex flex-wrap gap-6 justify-center">
+                                <Link to="/books" setCurrentPath={setCurrentPath}>
+                                    <button className="btn-hover px-8 py-3 bg-transparent rounded-md text-base" style={{ color: '#d4af37' }}>
+                                        Read My Books
+                                    </button>
+                                </Link>
+                                <Link to="/about" setCurrentPath={setCurrentPath}>
+                                    <button className="btn-hover px-8 py-3 bg-transparent rounded-md text-base" style={{ color: '#d4af37' }}>
+                                        About the Author
+                                    </button>
+                                </Link>
+                                <button
+                                    className="btn-hover px-8 py-3 bg-transparent rounded-md text-base"
+                                    style={{ color: '#d4af37' }}
+                                    onClick={() => setShowContactModal(true)}
+                                >
+                                    Contact
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        };
+
+
+        // Contact Modal Component
+        const ContactModal = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+
+            return (
+                <div className="modal show" onClick={onClose}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-3xl font-playfair mb-4" style={{ color: '#d4af37' }}>Get in Touch</h3>
+                        <p className="mb-4 leading-relaxed" style={{ color: '#c4a647' }}>
+                            For permissions, inquiries, or collaboration opportunities:
+                        </p>
+                        <a
+                            href="mailto:sinhadibyaraj@gmail.com"
+                            className="inline-block mb-6 text-xl transition-colors"
+                            style={{ color: '#d4af37' }}
+                        >
+                            sinhadibyaraj@gmail.com
+                        </a>
+                        <button
+                            className="text-gray-500 hover:text-golden transition-colors w-full mt-4"
+                            onClick={onClose}
+                            style={{ color: '#888' }}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // Books Page with PDF Reader
+        const Books = () => {
+            const [selectedBook, setSelectedBook] = useState(null);
+            const [isReading, setIsReading] = useState(false);
+
+            const getBookId = (book) => book.pdfPath.split('/').pop().replace('.pdf', '');
+
+            const books = [
+                {
+                    id: 3,
+                    title: 'The Aura',
+                    pdfPath: 'the-aura.pdf',
+                    cover: 'images/the-aura-cover.jpg',
+                    releaseDate: '2021',
+                    synopsis: 'Two old friends, Raj and Prakash, travel to a remote hotel in Dhanbad to solve the baffling disappearance of their two best friends, Anuj and Rajiv.'
+                },
+                {
+                    id: 2,
+                    title: 'Cinco',
+                    pdfPath: 'cinco.pdf',
+                    cover: 'images/cinco-cover.jpg',
+                    releaseDate: '2020',
+                    synopsis: 'When a top government official is found dead by starvation and another by poisoned food, Kolkata spirals into chaos. Each murder bears a chilling signature — a blood-red notepad marked in Spanish numbers. As detectives race to uncover the truth, they realize the killer is delivering poetic justice to the corrupt. Cinco is a political crime thriller that asks: when the system fails its people, who gets to decide what justice truly means?'
+                },
+                {
+                    id: 1,
+                    title: 'Beyond the Mist',
+                    pdfPath: 'beyond-the-mist.pdf',
+                    cover: 'images/beyond-the-mist-cover.jpg',
+                    releaseDate: '2019',
+                    synopsis: 'When Assistant Commissioner of Police Ajay Verma vanishes in the remote, mist-shrouded village of Rimbik, Detective Sayak Banerjee is called in to investigate the unsettling case.'
+                },
+            ];
+
+            const startReading = (book) => {
+                setSelectedBook(book);
+                setIsReading(true);
+
+                // set up (and de-dupe) postMessage listener
+                if (window._pdfSaveHandler) {
+                    window.removeEventListener('message', window._pdfSaveHandler);
+                }
+                window._pdfSaveHandler = (event) => {
+                    const msg = event.data;
+                    if (msg && msg.type === 'PDF_PAGE_CHANGE' && msg.bookId) {
+                        localStorage.setItem(`book:${msg.bookId}:page`, String(msg.page));
+                    }
+                };
+                window.addEventListener('message', window._pdfSaveHandler);
+            };
+
+            const closeReader = () => {
+                // Page progress is already saved by the iframe and the postMessage listener.
+                // We just need to remove the listener and close the modal.
+                if (window._pdfSaveHandler) {
+                    window.removeEventListener('message', window._pdfSaveHandler);
+                    window._pdfSaveHandler = null;
+                }
+                setIsReading(false);
+                setSelectedBook(null);
+            };
+
+            const hasProgress = (book) =>
+                localStorage.getItem(`book:${getBookId(book)}:page`) !== null;
+
+            const getStartPage = (book) =>
+                parseInt(localStorage.getItem(`book:${getBookId(book)}:page`) || '1', 10);
+
+            return (
+                <>
+                    <div className="min-h-screen content-wrapper fade-in">
+                        <div className="max-w-6xl mx-auto px-6">
+                            <h2 className="text-4xl md:text-5xl font-playfair text-center mb-16">My Books</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                                {books.map((book) => (
+                                    <div
+                                        key={book.id}
+                                        className="book-card"
+                                        onClick={() => setSelectedBook(book)}
+                                    >
+                                        <div
+                                            className="aspect-[2/3] rounded-lg mb-4 overflow-hidden"
+                                            style={{
+                                                backgroundImage: `url(${book.cover})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center'
+                                            }}
+                                        >
+                                        </div>
+                                        <h4 className="text-xl font-playfair text-center mb-2">{book.title}</h4>
+                                        <button
+                                            className="btn-hover w-full mt-4 px-6 py-2 bg-transparent rounded-md text-sm"
+                                            style={{ color: '#d4af37' }}
+                                        >
+                                            {hasProgress(book) ? 'Resume Reading' : 'Read Online'}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Book Info Modal */}
+                        {selectedBook && !isReading && (
+                            <div className="modal show" onClick={() => setSelectedBook(null)}>
+                                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                    <h3 className="text-3xl font-playfair mb-4">{selectedBook.title}</h3>
+                                    <p className="mb-4" style={{ color: '#b8960e' }}>Released: {selectedBook.releaseDate}</p>
+                                    <p className="mb-6 leading-relaxed" style={{ color: '#c4a647' }}>{selectedBook.synopsis}</p>
+                                    <button
+                                        className="btn-hover w-full px-6 py-3 bg-transparent rounded-md font-medium mb-4"
+                                        style={{ color: '#d4af37', border: '1px solid #d4af37' }}
+                                        onClick={() => startReading(selectedBook)}
+                                    >
+                                        {hasProgress(selectedBook) ? 'Resume Reading' : 'Start Reading'}
+                                    </button>
+                                    <button
+                                        className="text-gray-500 hover:text-golden transition-colors w-full"
+                                        onClick={() => setSelectedBook(null)}
+                                        style={{ color: '#888' }}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* PDF Reader */}
+                    {isReading && selectedBook && (
+                        <div className="pdf-reader-overlay">
+                            <div className="pdf-container">
+                                <button
+                                    className="close-reader-btn"
+                                    onClick={closeReader}
+                                >
+                                    ✕ Close Reader
+                                </button>
+                                <div style={{
+                                    position: 'fixed',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%) rotate(-45deg)',
+                                    fontSize: '50px',
+                                    color: 'rgba(0, 0, 0, 0.08)',
+                                    fontWeight: '900',
+                                    pointerEvents: 'none',
+                                    zIndex: 2001,
+                                    userSelect: 'none',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '10px',
+                                    whiteSpace: 'nowrap'
+                                }}>
+                                    © DIBYARAJ SINHA
+                                </div>
+                                <iframe
+                                    id="pdfViewer"
+                                    className="pdf-frame"
+                                    src={`pdfjs/web/viewer.html?file=${encodeURIComponent('/books/' + selectedBook.pdfPath)}&page=${getStartPage(selectedBook)}`}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </>
+            );
+        };
+
+        // About Page
+        const About = () => {
+            return (
+                <div className="min-h-screen content-wrapper fade-in">
+                    <div className="max-w-4xl mx-auto px-6">
+                        <div className="flex flex-col md:flex-row gap-12 items-start mb-12">
+                            <div className="w-full md:w-1/3">
+                                <div
+                                    className="aspect-square rounded-lg"
+                                    style={{
+                                        backgroundImage: 'url(images/author-profile.jpg)',
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
+                                ></div>
+                            </div>
+                            <div className="w-full md:w-2/3">
+                                <h2 className="text-3xl md:text-4xl font-playfair mb-6">About the Author</h2>
+                                <p className="leading-relaxed mb-6" style={{ color: '#c4a647' }}>
+                                    Dibyaraj Sinha. He likes to read a lot but writes occasionally even though he has a lot of plots ready. Guess he is just lazy. Besides writing, Dibyaraj loves to cook and travel. He wants to become a chef someday. He is also a doctor.
+                                </p>
+                                <div className="border-t border-gray-800 pt-6">
+                                    <h3 className="text-xl font-playfair mb-3" style={{ color: '#d4af37' }}>Contact</h3>
+                                    <a
+                                        href="mailto:sinhadibyaraj@gmail.com"
+                                        className="transition-colors"
+                                        style={{ color: '#b8960e' }}
+                                    >
+                                        sinhadibyaraj@gmail.com
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-gray-800 pt-8 text-sm text-center" style={{ color: '#9a8028' }}>
+                            <p className="mb-2">© 2025 Dibyaraj Sinha. All rights reserved.</p>
+                            <p>This work may be shared only via a direct link to the original source. Copying or reposting of the text without permission is prohibited.</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Rights & Permissions Page
+        const Rights = () => {
+            return (
+                <div className="min-h-screen content-wrapper fade-in">
+                    <div className="max-w-3xl mx-auto px-6">
+                        <h2 className="text-3xl md:text-4xl font-playfair mb-8">Rights & Permissions</h2>
+                        <div className="space-y-6 leading-relaxed" style={{ color: '#c4a647' }}>
+                            <p>
+                                All works published on this website are original creations by Dibyaraj Sinha.
+                            </p>
+                            <p className="font-medium" style={{ color: '#d4af37' }}>
+                                © 2025 Dibyaraj Sinha. All rights reserved.
+                            </p>
+                            <p>
+                                You're welcome to share links to my stories or this website anywhere online — social media, blogs, or personal recommendations are totally fine (and appreciated!).
+                            </p>
+                            <p>
+                                However, copying, reposting, or redistributing the text itself, in whole or in part, without my permission is not allowed.
+                            </p>
+                            <p>
+                                If you'd like to quote or feature excerpts for a review, article, or collaboration, please contact me directly for permission.
+                            </p>
+                            <div className="mt-12 pt-8 border-t border-gray-800">
+                                <h3 className="text-xl font-playfair mb-3" style={{ color: '#d4af37' }}>Get in Touch</h3>
+                                <p>For permissions and inquiries:</p>
+                                <a
+                                    href="mailto:sinhadibyaraj@gmail.com"
+                                    className="transition-colors inline-block mt-2"
+                                    style={{ color: '#b8960e' }}
+                                >
+                                    sinhadibyaraj@gmail.com
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [currentPath, setCurrentPath] = useState('/');
+
+            useEffect(() => {
+                setupCopyProtection();
+            }, []);
+
+            return (
+                <Router>
+                    <NameNotch setCurrentPath={setCurrentPath} />
+                    <Route path="/" component={Home} currentPath={currentPath} />
+                    <Route path="/books" component={Books} currentPath={currentPath} />
+                    <Route path="/about" component={About} currentPath={currentPath} />
+                    <Route path="/rights" component={Rights} currentPath={currentPath} />
+                    <Footer currentPath={currentPath} setCurrentPath={setCurrentPath} />
+                </Router>
+            );
+        };
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

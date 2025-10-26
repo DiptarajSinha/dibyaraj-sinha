@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html dir="ltr" mozdisallowselectionprint>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="google" content="notranslate">
+    <title>PDF Viewer</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #404040;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #pdf-container {
+            width: 100%;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            background: #525252;
+            padding-bottom: 80px;
+        }
+
+        #the-canvas {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            display: block;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            z-index: 1000;
+            padding: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #d4af37;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: #f4d03f;
+        }
+
+        button:disabled {
+            background: #666;
+            color: #999;
+        }
+
+        #page-info {
+            color: #d4af37;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .loading {
+            color: #d4af37;
+            font-size: 20px;
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            #pdf-container {
+                padding: 10px 0;
+                padding-bottom: 80px;
+            }
+
+            button {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            #controls {
+                height: 70px;
+                gap: 8px;
+            }
+
+            #page-info {
+                font-size: 11px;
+            }
+        }
+
+        #the-canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="pdf-container">
+        <div class="loading">Loading...</div>
+    </div>
+    <div id="controls">
+        <button id="prev-page">← Prev</button>
+        <span id="page-info"><span id="page-num">1</span>/<span id="page-count">1</span></span>
+        <button id="next-page">Next →</button>
+    </div>
+
+    <script type="module">
+        import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.mjs';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.mjs';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const pdfUrl = decodeURIComponent(urlParams.get('file') || '');
+        const bookId = pdfUrl.split('/').pop().replace('.pdf', '');
+
+        // Get saved page from localStorage
+        const savedPage = parseInt(localStorage.getItem(`book:${bookId}:page`)) || 1;
+        let startPage = parseInt(urlParams.get('page')) || savedPage;
+        let currentPage = startPage;
+        let pdfDoc = null;
+
+        const container = document.getElementById('pdf-container');
+        const pageNumEl = document.getElementById('page-num');
+        const pageCountEl = document.getElementById('page-count');
+        const prevBtn = document.getElementById('prev-page');
+        const nextBtn = document.getElementById('next-page');
+
+        console.log('Book ID:', bookId, 'Starting page:', startPage);
+
+        function getScale() {
+            const containerWidth = container.clientWidth;
+            const deviceRatio = window.devicePixelRatio || 1;
+            const baseScale = containerWidth / 600;
+            return Math.min(baseScale * deviceRatio, 3);
+        }
+
+        function renderPage(num) {
+            pdfDoc.getPage(num).then((page) => {
+                const viewport = page.getViewport({ scale: getScale() });
+                let canvas = document.getElementById('the-canvas');
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                    canvas.id = 'the-canvas';
+                    container.innerHTML = '';
+                    container.appendChild(canvas);
+                }
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+                    container.scrollTop = 0;
+                    currentPage = num;
+                    pageNumEl.textContent = num;
+                    prevBtn.disabled = num === 1;
+                    nextBtn.disabled = num === pdfDoc.numPages;
+
+                    // Save current page to localStorage
+                    localStorage.setItem(`book:${bookId}:page`, num);
+
+                    // Notify parent for resume
+                    window.parent.postMessage(
+                        { type: 'PDF_PAGE_CHANGE', bookId, page: num },
+                        '*'
+                    );
+                });
+            });
+        }
+
+        prevBtn.onclick = () => currentPage > 1 && renderPage(currentPage - 1);
+        nextBtn.onclick = () => currentPage < pdfDoc.numPages && renderPage(currentPage + 1);
+
+        window.addEventListener('resize', () => renderPage(currentPage));
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') prevBtn.click();
+            if (e.key === 'ArrowRight') nextBtn.click();
+        });
+
+        if (pdfUrl) {
+            pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+                pdfDoc = pdf;
+                pageCountEl.textContent = pdf.numPages;
+                console.log('PDF loaded, rendering page', startPage);
+                renderPage(startPage);
+            }).catch(err => {
+                container.innerHTML = '<div class="loading">Error: ' + err.message + '</div>';
+            });
+        }
+    </script>
+
+    <script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && ['c', 'a', 's', 'p'].includes(e.key)) e.preventDefault();
+            if (e.key === 'F12') e.preventDefault();
+        });
+    </script>
+</body>
+
+</html>
